@@ -446,7 +446,9 @@
 
   /* ---------------- Галерея: превью раскрывается в полноэкранный просмотр ---------------- */
   (function gallery() {
-    var links = $$(".gal__item:not([data-clone])");
+    var groups = { gal: $$(".gal__item:not([data-clone])") };
+    $$(".doc__item").forEach(function (a) { var g = a.dataset.group || "docs"; (groups[g] = groups[g] || []).push(a); });
+    var links = groups.gal.length ? groups.gal : groups.docs;
     var dlg = $("#lightbox");
     if (!links.length || !dlg || typeof dlg.showModal !== "function") return; // без поддержки — обычные ссылки на фото
     var img = $("#lbImg"), cap = $("#lbCap"), cnt = $("#lbCount");
@@ -502,7 +504,7 @@
       };
       if (RM) { done(); return; }
       var thumb = links[idx];
-      if (window.__carouselGo) window.__carouselGo(idx, true);
+      if (window.__carouselGo && links === groups.gal) window.__carouselGo(idx, true);
       thumb.scrollIntoView({ block: "nearest" });
       var anim = img.animate([FULL, fromThumb(thumb)], { duration: 440, easing: "cubic-bezier(.4, 0, .2, 1)", fill: "forwards" });
       anim.onfinish = function () { done(); anim.cancel(); };
@@ -522,8 +524,18 @@
       if (out) out.onfinish = after; else after();
     }
 
-    links.forEach(function (a, i) {
-      a.addEventListener("click", function (e) { e.preventDefault(); open(i); });
+    Object.keys(groups).forEach(function (g) {
+      groups[g].forEach(function (a, i) {
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          if (busy || closing) return;
+          links = groups[g]; open(i);
+        });
+      });
+    });
+    $$("[data-open]").forEach(function (b) { // кнопки «Диплом» и «Приложение» на карточках
+      var parts = b.dataset.open.split(":"), list = groups[parts[0]], i = +parts[1];
+      if (list && list[i]) b.addEventListener("click", function () { list[i].click(); });
     });
     $("#lbClose").addEventListener("click", close);
     $("#lbPrev").addEventListener("click", function () { step(-1); });
