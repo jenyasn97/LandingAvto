@@ -1,0 +1,11 @@
+# системные файлы
+.DS_Store
+Thumbs.db
+
+# исходные фото из профиля и неиспользуемые картинки
+assets/profi-src/
+assets/students-*.webp
+assets/gallery/*-th.webp
+
+# шрифт прошлой версии
+assets/fonts/overpass-*.woff2
