@@ -4,10 +4,12 @@
 
   Если оставить phone пустым, кнопки поведут в профиль на Профи.ру.
   Пустые whatsapp и telegram просто не показываются.
+  Пока metrika пустой, Яндекс Метрика не подключается.
 */
 window.SITE_CONFIG = {
   phone: "+7 985 216-37-34",
   whatsapp: "",   // только цифры, например "79991234567"
   telegram: "",   // имя пользователя без @, например "oleg_instructor"
-  profiUrl: "https://profi.ru/profile/SultanOV/"
+  profiUrl: "https://profi.ru/profile/SultanOV/",
+  metrika: "114282280" // номер счётчика Яндекс Метрики, только цифры, например "98765432"
 };

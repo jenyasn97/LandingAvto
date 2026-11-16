@@ -9,6 +9,33 @@
   var digits = function (s) { return String(s || "").replace(/\D/g, ""); };
   var hasIO = "IntersectionObserver" in window;
 
+  /* ---------------- Яндекс Метрика (номер счётчика в config.js) ---------------- */
+  var metrikaId = digits(cfg.metrika);
+  function goal(name) { if (metrikaId && window.ym) { try { window.ym(+metrikaId, "reachGoal", name); } catch (e) {} } }
+  if (metrikaId) {
+    (function (m, e, t, r, i, k, a) {
+      m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); };
+      m[i].l = 1 * new Date();
+      for (var s = 0; s < e.scripts.length; s++) { if (e.scripts[s].src === r) return; }
+      k = e.createElement(t); a = e.getElementsByTagName(t)[0];
+      k.async = 1; k.src = r; a.parentNode.insertBefore(k, a);
+    })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js?id=" + metrikaId, "ym");
+    window.ym(+metrikaId, "init", {
+      ssr: true, webvisor: true, clickmap: true, ecommerce: "dataLayer",
+      referrer: document.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true
+    });
+  }
+  // цели: звонок, мессенджеры, переход на Профи.ру
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[href]");
+    if (!a) return;
+    var href = a.getAttribute("href") || "";
+    if (href.indexOf("tel:") === 0) goal("call");
+    else if (href.indexOf("wa.me") > -1) goal("whatsapp");
+    else if (href.indexOf("t.me") > -1) goal("telegram");
+    else if (href.indexOf("profi.ru") > -1) goal("profi");
+  }, true);
+
   /* ---------------- Контакты из config.js ---------------- */
   var profiUrl = cfg.profiUrl || "https://profi.ru/profile/SultanOV/";
   var phoneDigits = digits(cfg.phone).replace(/^8(\d{10})$/, "7$1");
