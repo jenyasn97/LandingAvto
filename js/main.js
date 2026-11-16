@@ -246,42 +246,58 @@
     }
   }
 
-  /* ---------------- Вопросы: плавное раскрытие ---------------- */
-  $$(".faq details").forEach(function (d) {
-    var summary = $("summary", d);
-    var panel = $(".faq__body", d);
-    var anim = null;
-    if (d.open) d.classList.add("is-open");
-
-    summary.addEventListener("click", function (e) {
-      e.preventDefault();
-      var opening = !d.classList.contains("is-open");
-      var from = anim ? panel.offsetHeight : (opening ? 0 : panel.offsetHeight);
-      if (anim) { anim.cancel(); anim = null; }
-
-      if (opening) {
-        d.open = true;
-        d.classList.add("is-open");
-        summary.setAttribute("aria-expanded", "true");
+  /* ---------------- Вопросы: плавное раскрытие, открыт только один ---------------- */
+  (function faq() {
+    var items = $$(".faq details").map(function (d) {
+      return { d: d, summary: $("summary", d), panel: $(".faq__body", d), anim: null };
+    });
+    function set(it, open) {
+      var d = it.d, panel = it.panel;
+      if (open === d.classList.contains("is-open")) return;
+      var from = it.anim ? panel.offsetHeight : (open ? 0 : panel.offsetHeight);
+      if (it.anim) { it.anim.cancel(); it.anim = null; }
+      it.summary.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) {
+        d.open = true; d.classList.add("is-open");
         if (RM || !panel.animate) return;
-        var to = panel.scrollHeight;
-        anim = panel.animate(
-          [{ height: from + "px", opacity: 0 }, { height: to + "px", opacity: 1 }],
-          { duration: 560, easing: "cubic-bezier(.2, .8, .2, 1)" }
-        );
-        anim.onfinish = function () { anim = null; };
+        it.anim = panel.animate([{ height: from + "px", opacity: 0 }, { height: panel.scrollHeight + "px", opacity: 1 }],
+          { duration: 560, easing: "cubic-bezier(.2, .8, .2, 1)" });
+        it.anim.onfinish = function () { it.anim = null; };
       } else {
         d.classList.remove("is-open");
-        summary.setAttribute("aria-expanded", "false");
         if (RM || !panel.animate) { d.open = false; return; }
-        anim = panel.animate(
-          [{ height: from + "px", opacity: 1 }, { height: "0px", opacity: 0 }],
-          { duration: 420, easing: "cubic-bezier(.65, 0, .35, 1)" }
-        );
-        anim.onfinish = function () { anim = null; if (!d.classList.contains("is-open")) d.open = false; };
+        it.anim = panel.animate([{ height: from + "px", opacity: 1 }, { height: "0px", opacity: 0 }],
+          { duration: 420, easing: "cubic-bezier(.65, 0, .35, 1)" });
+        it.anim.onfinish = function () { it.anim = null; if (!d.classList.contains("is-open")) d.open = false; };
       }
+    }
+    items.forEach(function (it) {
+      if (it.d.open) it.d.classList.add("is-open");
+      it.summary.addEventListener("click", function (e) {
+        e.preventDefault();
+        var opening = !it.d.classList.contains("is-open");
+        if (opening) items.forEach(function (o) { if (o !== it) set(o, false); }); // остальные закрываются
+        set(it, opening);
+      });
     });
-  });
+  })();
+
+  /* ---------------- Кнопка «Наверх» ---------------- */
+  (function toTop() {
+    var btn = $("#toTop");
+    if (!btn) return;
+    var shown = false;
+    var upd = function () {
+      var on = window.scrollY > window.innerHeight * 1.2;
+      if (on !== shown) { shown = on; btn.classList.toggle("is-on", on); btn.tabIndex = on ? 0 : -1; }
+    };
+    window.addEventListener("scroll", upd, { passive: true });
+    upd();
+    btn.addEventListener("click", function () {
+      window.scrollTo({ top: 0, behavior: RM ? "auto" : "smooth" });
+      var brand = $(".brand"); if (brand) brand.focus({ preventScroll: true });
+    });
+  })();
 
   /* ---------------- Карусель: фото по центру, соседние меньше, по кругу ---------------- */
   (function carousel() {
